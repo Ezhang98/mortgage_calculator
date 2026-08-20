@@ -1,0 +1,8 @@
+{
+  "updated": "2026-01-01",
+  "note": "Placeholder seed. The update-rates GitHub Action overwrites this file. The UI treats data older than 21 days as unavailable.",
+  "series": {
+    "MORTGAGE30US": { "label": "30-yr fixed (US weekly avg)", "rate": null, "asOf": null },
+    "MORTGAGE15US": { "label": "15-yr fixed (US weekly avg)", "rate": null, "asOf": null }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "year": 2026,
+  "note": "Update yearly. Conforming limits: FHFA (baseline + CA high-cost ceiling). FHA MIP: HUD annual MIP table, simplified to 30-yr terms.",
+  "conformingBaseline": 806500,
+  "conformingHighCostMax": 1209750,
+  "fha": {
+    "upfrontMipPct": 1.75,
+    "annualMipPct": {
+      "ltvOver95": 0.55,
+      "ltvUpTo95": 0.5
+    },
+    "cancelMonthsIfDownAtLeast10": 132
+  },
+  "va": {
+    "fundingFeeFirstUsePct": 2.15,
+    "fundingFeeSubsequentPct": 3.3
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "taxYear": 2025,
+  "note": "Update yearly from IRS inflation adjustments, CA FTB tables, SSA wage base, and EDD SDI rate. Brackets are [upperBound, ratePct]; null upper bound = top bracket.",
+  "federal": {
+    "standardDeduction": { "single": 15750, "mfj": 31500 },
+    "brackets": {
+      "single": [
+        [11925, 10],
+        [48475, 12],
+        [103350, 22],
+        [197300, 24],
+        [250525, 32],
+        [626350, 35],
+        [null, 37]
+      ],
+      "mfj": [
+        [23850, 10],
+        [96950, 12],
+        [206700, 22],
+        [394600, 24],
+        [501050, 32],
+        [751600, 35],
+        [null, 37]
+      ]
+    }
+  },
+  "california": {
+    "standardDeduction": { "single": 5540, "mfj": 11080 },
+    "brackets": {
+      "single": [
+        [10756, 1],
+        [25499, 2],
+        [40245, 4],
+        [55866, 6],
+        [70606, 8],
+        [360659, 9.3],
+        [432787, 10.3],
+        [721314, 11.3],
+        [null, 12.3]
+      ],
+      "mfj": [
+        [21512, 1],
+        [50998, 2],
+        [80490, 4],
+        [111732, 6],
+        [141212, 8],
+        [721318, 9.3],
+        [865574, 10.3],
+        [1442628, 11.3],
+        [null, 12.3]
+      ]
+    },
+    "mentalHealthSurcharge": { "threshold": 1000000, "ratePct": 1 },
+    "sdiRatePct": 1.2
+  },
+  "fica": {
+    "ssRatePct": 6.2,
+    "ssWageBase": 176100,
+    "medicareRatePct": 1.45,
+    "addlMedicareRatePct": 0.9,
+    "addlMedicareThreshold": { "single": 200000, "mfj": 250000 }
+  }
+}

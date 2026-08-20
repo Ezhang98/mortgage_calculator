@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mortgage Calculator</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <h1>Mortgage Calculator</h1>
+    <p class="muted">California-flavored mortgage comparison — estimates only, not financial, tax, or investment advice.</p>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="calculator">Calculator</button>
+    <button class="tab-btn" data-tab="compare">Compare</button>
+    <button class="tab-btn" data-tab="explorer">Down payment</button>
+    <button class="tab-btn" data-tab="household">Household split</button>
+  </nav>
+
+  <!-- ============ TAB 1: CALCULATOR ============ -->
+  <section id="tab-calculator" class="tab-panel active">
+    <div class="two-col">
+      <form class="card" id="calc-form" autocomplete="off">
+        <h2>Loan</h2>
+        <div class="grid">
+          <label>Home price ($)
+            <input type="number" id="in-homePrice" min="0" step="1000" value="750000">
+          </label>
+          <label>Down payment (%)
+            <input type="number" id="in-downPercent" min="0" max="100" step="0.5" value="20">
+          </label>
+          <label>Down payment ($)
+            <input type="number" id="in-downDollars" min="0" step="1000" value="150000">
+          </label>
+          <label>Interest rate (%/yr)
+            <input type="number" id="in-ratePct" min="0" max="25" step="0.01" value="6.5">
+            <small class="muted" id="res-effRate"></small>
+          </label>
+          <label>Loan type
+            <select id="in-loanType"></select>
+          </label>
+        </div>
+        <div id="jumbo-badge" class="badge warn hidden"></div>
+
+        <div id="sec-arm" class="subsection hidden">
+          <h3>ARM assumption</h3>
+          <label>Rate after fixed period (%/yr) <span class="muted">— assumed, blank = rate + 2</span>
+            <input type="number" id="in-armPostRatePct" min="0" max="25" step="0.05" placeholder="auto">
+          </label>
+        </div>
+
+        <div id="sec-fha" class="subsection hidden">
+          <h3>FHA</h3>
+          <div class="grid">
+            <label>Annual MIP (%/yr) <span class="muted">— blank = auto</span>
+              <input type="number" id="in-fhaAnnualMipPct" min="0" max="2" step="0.05" placeholder="auto">
+            </label>
+            <label class="check"><input type="checkbox" id="in-fhaFinanceUpfront" checked> Finance upfront MIP (1.75%)</label>
+          </div>
+        </div>
+
+        <div id="sec-va" class="subsection hidden">
+          <h3>VA</h3>
+          <div class="grid">
+            <label>Funding fee (%)
+              <input type="number" id="in-vaFundingFeePct" min="0" max="4" step="0.05" value="2.15">
+            </label>
+            <label class="check"><input type="checkbox" id="in-vaFinanceFee" checked> Finance funding fee</label>
+            <label class="check"><input type="checkbox" id="in-vaExempt"> Fee-exempt (disability)</label>
+          </div>
+        </div>
+
+        <div id="sec-pmi" class="subsection">
+          <h3>PMI <span class="muted">(down payment under 20%)</span></h3>
+          <label>PMI rate (%/yr of balance)
+            <input type="number" id="in-pmiRatePct" min="0" max="3" step="0.05" value="0.6">
+          </label>
+        </div>
+
+        <h2>Points</h2>
+        <div class="grid">
+          <label>Discount points
+            <input type="number" id="in-points" min="0" max="4" step="0.25" value="0">
+          </label>
+          <label>Rate reduction per point (%)
+            <input type="number" id="in-pointReductionPct" min="0" max="1" step="0.005" value="0.25">
+          </label>
+        </div>
+
+        <h2>Monthly costs</h2>
+        <div class="grid">
+          <label>Property tax (%/yr of price)
+            <input type="number" id="in-propTaxPct" min="0" max="5" step="0.01" value="1.15">
+          </label>
+          <label>Assessed growth (%/yr)
+            <input type="number" id="in-assessedGrowthPct" min="0" max="5" step="0.1" value="2">
+          </label>
+          <label>Home insurance ($/yr)
+            <input type="number" id="in-insuranceAnnual" min="0" step="100" value="2000">
+          </label>
+          <label>HOA ($/mo)
+            <input type="number" id="in-hoaMonthly" min="0" step="10" value="0">
+          </label>
+          <label>Mello-Roos ($/yr)
+            <input type="number" id="in-melloRoosAnnual" min="0" step="100" value="0">
+          </label>
+        </div>
+
+        <h2>Extra payments</h2>
+        <div class="grid">
+          <label>Extra monthly ($)
+            <input type="number" id="in-extraMonthly" min="0" step="50" value="0">
+          </label>
+          <label>One-time extra ($)
+            <input type="number" id="in-extraOnceAmount" min="0" step="500" value="0">
+          </label>
+          <label>One-time at month #
+            <input type="number" id="in-extraOnceMonth" min="1" step="1" value="12">
+          </label>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="primary" id="btn-save-profile">Save as profile</button>
+          <button type="button" id="btn-share">Copy share link</button>
+          <span id="share-copied" class="muted hidden">Link copied!</span>
+        </div>
+      </form>
+
+      <div class="results">
+        <div class="card">
+          <h2>Monthly payment</h2>
+          <div class="hero" id="res-monthlyPI">—</div>
+          <div class="muted">principal &amp; interest</div>
+          <table class="mini-table" id="res-breakdown"></table>
+        </div>
+
+        <div class="card">
+          <h2>National average <button type="button" class="small-btn" id="btn-refresh-rates" title="Re-fetch cached benchmark">refresh</button></h2>
+          <div id="benchmark" class="muted">Loading…</div>
+        </div>
+
+        <div class="card">
+          <h2>Loan summary</h2>
+          <table class="mini-table" id="res-summary"></table>
+        </div>
+
+        <div class="card hidden" id="points-panel">
+          <h2>Points break-even</h2>
+          <table class="mini-table" id="points-stats"></table>
+          <div class="chart-box small"><canvas id="chart-points"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 2: COMPARE ============ -->
+  <section id="tab-compare" class="tab-panel">
+    <div class="card">
+      <h2>Profiles</h2>
+      <div id="profile-list" class="profile-list"></div>
+      <div class="btn-row">
+        <button type="button" id="btn-export">Export JSON</button>
+        <label class="file-btn">Import JSON<input type="file" id="file-import" accept=".json" hidden></label>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Cumulative total paid</h2>
+      <div class="btn-row">
+        <label class="check"><input type="checkbox" id="cmp-allin" checked> Include taxes, insurance &amp; other costs (all-in)</label>
+        <label class="check"><input type="checkbox" id="cmp-armband"> Show ARM best/worst band</label>
+      </div>
+      <div class="chart-box"><canvas id="chart-cumulative"></canvas></div>
+      <p class="muted">Lines start at the upfront points/fee cost. Dashed segments are assumed (post-fixed ARM). Triangles mark mortgage-insurance drop-off; squares mark early payoff.</p>
+    </div>
+    <div class="card">
+      <h2>Principal vs. interest</h2>
+      <label>Profile <select id="cmp-breakdown-profile"></select></label>
+      <div class="chart-box"><canvas id="chart-breakdown"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Comparison</h2>
+      <div class="table-scroll"><table class="data-table" id="cmp-table"></table></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3: DOWN PAYMENT EXPLORER ============ -->
+  <section id="tab-explorer" class="tab-panel">
+    <div class="card">
+      <h2>Sweep down payments</h2>
+      <div class="grid">
+        <label>Home price ($)
+          <input type="number" id="ex-homePrice" min="0" step="1000" value="750000">
+        </label>
+        <label>Interest rate (%/yr)
+          <input type="number" id="ex-ratePct" min="0" max="25" step="0.01" value="6.5">
+        </label>
+        <label>Loan type
+          <select id="ex-loanType"></select>
+        </label>
+        <label>Down payment levels (%)
+          <input type="text" id="ex-presets" value="3.5, 5, 10, 15, 20, 25">
+        </label>
+      </div>
+      <p class="muted">Other monthly-cost assumptions are taken from the Calculator tab. FHA minimum is 3.5%; conventional minimum is typically 3%.</p>
+    </div>
+    <div class="card">
+      <h2>Cumulative all-in cost by down payment</h2>
+      <div class="chart-box"><canvas id="chart-explorer"></canvas></div>
+      <p class="muted">Triangles mark where mortgage insurance drops off.</p>
+    </div>
+    <div class="card">
+      <h2>Details</h2>
+      <div class="table-scroll"><table class="data-table" id="ex-table"></table></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB 4: HOUSEHOLD SPLIT ============ -->
+  <section id="tab-household" class="tab-panel">
+    <div class="card">
+      <h2>Mortgage to split</h2>
+      <div class="grid">
+        <label>Source
+          <select id="hh-source"></select>
+        </label>
+        <label class="check"><input type="checkbox" id="hh-pionly"> Split P&amp;I only (exclude taxes/insurance/etc.)</label>
+      </div>
+      <div id="hh-mortgage-total" class="muted"></div>
+      <div id="hh-warning" class="badge warn hidden"></div>
+    </div>
+    <div class="card">
+      <h2>People</h2>
+      <div id="hh-people"></div>
+      <div class="btn-row"><button type="button" id="btn-add-person">+ Add person</button></div>
+    </div>
+    <div class="card">
+      <h2>Other shared costs</h2>
+      <div id="hh-costs"></div>
+      <div class="btn-row"><button type="button" id="btn-add-cost">+ Add cost</button></div>
+    </div>
+    <div class="card">
+      <h2>Spending money per month</h2>
+      <div class="table-scroll"><table class="data-table" id="hh-table"></table></div>
+      <div class="chart-box"><canvas id="chart-household"></canvas></div>
+      <p class="muted" id="hh-taxnote"></p>
+    </div>
+  </section>
+
+  <footer class="site-footer muted">
+    Estimates only — not financial, tax, or investment advice. Benchmark rates are weekly national
+    averages for conforming loans (Freddie Mac PMMS via FRED). Tax math assumes W-2 income, the
+    standard deduction, and no credits. Verify everything with your lender and a tax professional.
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

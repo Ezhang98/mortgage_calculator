@@ -1,0 +1,11 @@
+{
+  "name": "mortgage-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Static mortgage comparison tool for GitHub Pages",
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\"",
+    "serve": "python -m http.server 8321"
+  }
+}
