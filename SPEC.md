@@ -148,9 +148,9 @@ Answers: "for each person paying into this mortgage, how much spending money do 
 
 - **Mortgage cost source**: pick one saved profile (or the current Calculator inputs); the tab uses its **first-month all-in monthly cost** (P&I + MI + tax + insurance + HOA + Mello-Roos) as the amount to split. A toggle allows P&I-only.
 - **People**: add/remove/rename people. Per person:
-  - **Gross annual salary** ($)
-  - **Filing status** (single / married filing jointly; default single)
-  - **Pre-tax deductions** ($/mo; optional — 401k, health premiums; default 0)
+  - **Income**, entered one of two ways:
+    - **Gross annual salary** ($) with **filing status** (single / married filing jointly; default single) and optional **pre-tax deductions** ($/mo — 401k, health premiums; capped at salary) — taxes are then estimated per below; or
+    - **Actual take-home pay per two weeks** ($, from a payroll stub) — annualized as ×26 paychecks ÷ 12 months and used directly, bypassing the tax estimate entirely (tax columns show "—"). More accurate when the number is available.
   - **Mortgage share** — either a **% of the monthly cost or a fixed $/mo** (linked fields, same pattern as down payment)
 - **Share validation**: shares are shown against the total. If the sum ≠ 100% (or ≠ the full $ amount), a warning banner shows the shortfall/overage — non-blocking, since uneven or partial splits are legitimate.
 - **Other shared costs**: an editable list of named monthly costs (seeded with "Internet"; user can add utilities, streaming, etc.). Each cost has its own per-person split (% or $, defaulting to an even split). Costs can also be marked **personal** (assigned wholly to one person, e.g. a car payment).

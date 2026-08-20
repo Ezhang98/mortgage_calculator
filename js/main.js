@@ -449,12 +449,19 @@ function renderHouseholdRows() {
       (p) => `
       <div class="hh-row">
         <label>Name<input type="text" data-pid="${p.id}" data-field="name" value="${p.name ?? ''}"></label>
+        <label>Income as<select data-pid="${p.id}" data-field="incomeMode">
+          <option value="salary" ${p.incomeMode !== 'net2w' ? 'selected' : ''}>Gross salary /yr</option>
+          <option value="net2w" ${p.incomeMode === 'net2w' ? 'selected' : ''}>Take-home / 2 wks</option>
+        </select></label>
+        ${p.incomeMode === 'net2w'
+          ? `<label>Take-home ($/2 wks)<input type="number" min="0" step="50" data-pid="${p.id}" data-field="netBiweekly" value="${p.netBiweekly ?? 0}"></label>`
+          : `
         <label>Salary ($/yr)<input type="number" min="0" step="1000" data-pid="${p.id}" data-field="salaryAnnual" value="${p.salaryAnnual ?? 0}"></label>
         <label>Filing<select data-pid="${p.id}" data-field="filing">
           <option value="single" ${p.filing !== 'mfj' ? 'selected' : ''}>Single</option>
           <option value="mfj" ${p.filing === 'mfj' ? 'selected' : ''}>Married joint</option>
         </select></label>
-        <label>Pre-tax ($/mo)<input type="number" min="0" step="50" data-pid="${p.id}" data-field="preTaxMonthly" value="${p.preTaxMonthly ?? 0}"></label>
+        <label>Pre-tax ($/mo)<input type="number" min="0" step="50" data-pid="${p.id}" data-field="preTaxMonthly" value="${p.preTaxMonthly ?? 0}"></label>`}
         <label>Share as<select data-pid="${p.id}" data-field="shareMode">
           <option value="pct" ${p.shareMode !== 'usd' ? 'selected' : ''}>% of payment</option>
           <option value="usd" ${p.shareMode === 'usd' ? 'selected' : ''}>$ / month</option>
@@ -512,19 +519,21 @@ function renderHouseholdResults() {
     warn.classList.add('hidden');
   }
 
+  const cell = (v) => (v == null ? '—' : usd(v));
   $('hh-table').innerHTML =
     `<tr><th>Person</th><th>Gross /mo</th><th>Pre-tax</th><th>Est. taxes</th><th>Take-home</th><th>Mortgage share</th><th>Other costs</th><th>Spending money</th></tr>` +
     rows
       .map(
         (r) =>
-          `<tr><td>${r.name}</td><td>${usd(r.gross)}</td><td>${usd(r.preTax)}</td><td>${usd(r.taxes)}</td>` +
+          `<tr><td>${r.name}${r.fromPayroll ? ' <span class="muted">(payroll)</span>' : ''}</td>` +
+          `<td>${cell(r.gross)}</td><td>${cell(r.preTax)}</td><td>${cell(r.taxes)}</td>` +
           `<td>${usd(r.takeHome)}</td><td>${usd(r.mortgage)}</td><td>${usd(r.other)}</td>` +
           `<td${r.spending < 0 ? ' class="negative"' : ''}>${usd(r.spending)}</td></tr>`
       )
       .join('');
 
   if (rows.length > 0) renderHouseholdChart($('chart-household'), rows);
-  $('hh-taxnote').textContent = `Tax estimate (tax year ${taxData.taxYear}): federal + California income tax, CA SDI, Social Security and Medicare, standard deduction, W-2 wages only — no credits, dependents, or itemizing. Rough numbers, not tax advice.`;
+  $('hh-taxnote').textContent = `Tax estimate (tax year ${taxData.taxYear}): federal + California income tax, CA SDI, Social Security and Medicare, standard deduction, W-2 wages only — no credits, dependents, or itemizing. Rough numbers, not tax advice. People entered as "Take-home / 2 wks" use their actual payroll number instead (annualized: ×26 paychecks ÷ 12 months), so no tax estimate is applied.`;
 }
 
 function renderHousehold() {
@@ -645,6 +654,7 @@ function bindEvents() {
     household.people.push({
       id: 'per' + Math.random().toString(36).slice(2, 8),
       name: `Person ${household.people.length + 1}`,
+      incomeMode: 'salary', netBiweekly: 0,
       salaryAnnual: 100000, filing: 'single', preTaxMonthly: 0,
       shareMode: 'pct',
       shareValue: household.people.length === 0 ? 100 : 0,
@@ -666,10 +676,15 @@ function bindEvents() {
     if (t.dataset.pid && t.dataset.field) {
       const p = household.people.find((x) => x.id === t.dataset.pid);
       if (!p) return;
-      const v = ['name', 'filing', 'shareMode'].includes(t.dataset.field)
+      const v = ['name', 'filing', 'shareMode', 'incomeMode'].includes(t.dataset.field)
         ? t.value
         : parseFloat(t.value) || 0;
       p[t.dataset.field] = v;
+      if (t.dataset.field === 'incomeMode') {
+        store.saveHousehold(household);
+        renderHousehold();
+        return;
+      }
     } else if (t.dataset.cid && t.dataset.pctPid) {
       const c = household.costs.find((x) => x.id === t.dataset.cid);
       if (!c) return;

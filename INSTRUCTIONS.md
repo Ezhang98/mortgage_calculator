@@ -117,9 +117,14 @@ Answers: *how much spending money does each person have left per month?*
 
 - Pick which mortgage to split (a saved profile or the current Calculator inputs), all-in or
   P&I only.
-- Add **people**: salary, filing status (single / married filing jointly), optional pre-tax
-  deductions ($/mo, e.g. 401k), and a mortgage share as **% of the payment or a fixed $/mo**.
-  If shares don't cover the full payment a warning shows the gap (partial splits are allowed).
+- Add **people**. Income can be entered two ways (per person):
+  - **Gross salary /yr** with filing status and optional pre-tax deductions ($/mo, e.g.
+    401k) — taxes are then estimated; or
+  - **Take-home / 2 wks** — the actual net amount from a payroll stub, annualized as
+    ×26 paychecks ÷ 12 months and used directly. No tax estimate is applied (those columns
+    show "—"). Use this when you have a real paycheck number; it's more accurate.
+  Each person also gets a mortgage share as **% of the payment or a fixed $/mo**. If shares
+  don't cover the full payment a warning shows the gap (partial splits are allowed).
 - Add **other costs** (seeded with Internet): each can be split evenly, by custom
   percentages, or assigned entirely to one person (e.g. a car payment).
 - The table shows per person: gross → estimated taxes → take-home → mortgage share → other

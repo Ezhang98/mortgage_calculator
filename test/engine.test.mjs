@@ -126,6 +126,32 @@ test('estimateTaxes components are separated correctly', () => {
   closeTo(r.takeHomeAnnual, 100000 - r.totalTax, 0.01, 'take-home = gross − tax');
 });
 
+test('pre-tax deductions are capped at salary', () => {
+  const zero = estimateTaxes({ salaryAnnual: 0, filing: 'single', preTaxMonthly: 1000 }, taxData);
+  assert.equal(zero.takeHomeAnnual, 0, 'no salary → no negative take-home');
+  assert.equal(zero.preTaxAnnual, 0, 'deduction capped at zero salary');
+  const capped = estimateTaxes({ salaryAnnual: 24000, filing: 'single', preTaxMonthly: 5000 }, taxData);
+  assert.equal(capped.preTaxAnnual, 24000, 'deduction capped at salary');
+  assert.ok(capped.takeHomeAnnual <= 0.001 && capped.takeHomeAnnual >= -capped.totalTax - 0.001,
+    'take-home is at worst negative by FICA/SDI only, never by the deduction itself');
+});
+
+test('biweekly take-home income mode bypasses the tax estimate', () => {
+  const h = {
+    people: [
+      { id: 'a', name: 'A', incomeMode: 'net2w', netBiweekly: 3000, shareMode: 'pct', shareValue: 50 },
+      { id: 'b', name: 'B', incomeMode: 'salary', salaryAnnual: 100000, filing: 'single', preTaxMonthly: 0, shareMode: 'pct', shareValue: 50 },
+    ],
+    costs: [],
+  };
+  const { rows } = computeHousehold(h, 4000, taxData);
+  closeTo(rows[0].takeHome, (3000 * 26) / 12, 0.01, 'annualized biweekly net');
+  assert.equal(rows[0].taxes, null, 'no tax estimate in payroll mode');
+  assert.equal(rows[0].fromPayroll, true);
+  closeTo(rows[0].spending, 6500 - 2000, 0.01, 'spending = net − mortgage share');
+  assert.ok(rows[1].taxes > 0, 'salary person still estimated');
+});
+
 test('household split allocates mortgage and costs', () => {
   const h = {
     people: [

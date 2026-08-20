@@ -20,7 +20,8 @@ export function taxFromBrackets(taxable, brackets) {
 export function estimateTaxes(person, taxData) {
   const salary = Math.max(0, person.salaryAnnual || 0);
   const filing = person.filing === 'mfj' ? 'mfj' : 'single';
-  const preTaxAnnual = Math.max(0, (person.preTaxMonthly || 0) * 12);
+  // A pre-tax payroll deduction can never exceed the wages it is taken from.
+  const preTaxAnnual = Math.min(salary, Math.max(0, (person.preTaxMonthly || 0) * 12));
   const agi = Math.max(0, salary - preTaxAnnual);
 
   const fed = taxData.federal;

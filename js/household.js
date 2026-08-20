@@ -2,22 +2,40 @@
 
 import { estimateTaxes } from './taxes.js';
 
-// h: { people: [{id, name, salaryAnnual, filing, preTaxMonthly, shareMode: 'pct'|'usd', shareValue}],
+// h: { people: [{id, name, incomeMode: 'salary'|'net2w', salaryAnnual, filing, preTaxMonthly,
+//                netBiweekly, shareMode: 'pct'|'usd', shareValue}],
 //      costs:  [{id, name, amount, split: 'even'|'custom'|'personal', pct: {personId: pct}, personId}] }
 // mortgageMonthly: the monthly cost being split (all-in or P&I-only).
+// incomeMode 'net2w' takes actual take-home pay per two weeks from payroll (26 paychecks/yr,
+// annualized to monthly as ×26/12) and skips the tax estimate entirely.
 export function computeHousehold(h, mortgageMonthly, taxData) {
   const people = h.people;
   const rows = people.map((person) => {
-    const tax = estimateTaxes(person, taxData);
     const mortgage =
       person.shareMode === 'usd'
         ? person.shareValue || 0
         : (mortgageMonthly * (person.shareValue || 0)) / 100;
+    if (person.incomeMode === 'net2w') {
+      return {
+        id: person.id,
+        name: person.name || 'Person',
+        fromPayroll: true,
+        gross: null,
+        preTax: null,
+        taxes: null,
+        takeHome: (Math.max(0, person.netBiweekly || 0) * 26) / 12,
+        mortgage,
+        other: 0,
+        tax: null,
+      };
+    }
+    const tax = estimateTaxes(person, taxData);
     return {
       id: person.id,
       name: person.name || 'Person',
+      fromPayroll: false,
       gross: tax.grossMonthly,
-      preTax: person.preTaxMonthly || 0,
+      preTax: tax.preTaxAnnual / 12,
       taxes: tax.totalTaxMonthly,
       takeHome: tax.takeHomeMonthly,
       mortgage,
